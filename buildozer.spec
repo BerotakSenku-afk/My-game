@@ -14,6 +14,10 @@ android.permissions = android.permission.VIBRATE
 android.api = 33
 android.minapi = 21
 android.ndk_api = 21
+
+# Cari baris ini (jika ada tanda # di depannya, hapus tanda # tersebut)
+android.build_tools_version = 33.0.1
+
 android.archs = armeabi-v7a, arm64-v8a
 p4a.branch = master
 
