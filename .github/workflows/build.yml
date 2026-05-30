@@ -19,8 +19,14 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Set Up Android SDK Otomatis (Solusi Permanen Aidl)
-      uses: android-actions/setup-android@v3
+    - name: Paksa Instal Android Build-Tools & Kenalkan Aidl
+      run: |
+        # 1. Unduh paket build-tools versi 33 yang di dalamnya ada file aidl
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.1"
+        
+        # 2. Daftarkan folder aidl tersebut ke 'Jalur Jalan' (PATH) GitHub Actions
+        echo "$ANDROID_HOME/build-tools/33.0.1" >> $GITHUB_PATH
+
 
     - name: Ambil Cache Buildozer
       uses: actions/cache@v4
