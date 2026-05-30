@@ -1,0 +1,42 @@
+name: Build Android APK with Buildozer
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout Konten Repositori
+      uses: actions/checkout@v3
+
+    - name: Ambil Cache Buildozer (Biar Build Selanjutnya Cepat)
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.ccache
+          .buildozer
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+
+    - name: Install Dependencies & Alat Kompiler (Perbaikan Libtool)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip cmake libffi-dev libssl-dev
+        sudo pip3 install --upgrade buildozer cython virtualenv
+
+    - name: Proses Kompilasi APK (Buildozer Debug)
+      run: |
+        buildozer android debug
+
+    - name: Upload Hasil File APK ke GitHub Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Game-APK-Siap-Instal
+        path: bin/*.apk
+
