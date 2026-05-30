@@ -45,3 +45,4 @@ jobs:
       with:
         name: Game-APK-Siap-Instal
         path: bin/*.apk
+    
