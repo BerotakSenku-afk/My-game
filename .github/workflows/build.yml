@@ -23,12 +23,18 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-buildozer-
 
-    - name: Install Dependencies & Alat Kompiler (Perbaikan Libtool)
+    - name: Install Dependencies & Alat Kompiler
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip cmake libffi-dev libssl-dev
         sudo pip3 install --upgrade buildozer cython virtualenv
+
+    - name: Setujui Lisensi Android SDK Otomatis (Solusi Error Aidl)
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --licenses || true
 
     - name: Proses Kompilasi APK (Buildozer Debug)
       run: |
