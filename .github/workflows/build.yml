@@ -30,11 +30,16 @@ jobs:
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip cmake libffi-dev libssl-dev
         sudo pip3 install --upgrade buildozer cython virtualenv
 
-    - name: Setujui Lisensi Android SDK Otomatis (Solusi Error Aidl)
+    - name: Setujui Lisensi Android SDK & Paksa Instal Aidl
       run: |
         mkdir -p ~/.android
         touch ~/.android/repositories.cfg
-        yes | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --licenses || true
+        # Menggunakan sdkmanager bawaan GitHub Actions secara presisi
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        # Paksa sistem menginstal build-tools agar file aidl langsung tersedia
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.1"
+        # Daftarkan build-tools ke sistem agar Buildozer bisa langsung memanggil aidl
+        echo "$ANDROID_HOME/build-tools/33.0.1" >> $GITHUB_PATH
 
     - name: Proses Kompilasi APK (Buildozer Debug)
       run: |
@@ -45,4 +50,3 @@ jobs:
       with:
         name: Game-APK-Siap-Instal
         path: bin/*.apk
-    
