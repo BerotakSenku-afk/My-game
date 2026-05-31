@@ -1,56 +1,80 @@
-name: Build Android APK dengan Buildozer
+name: 'Kivy App to APK'
+description: 'Convert Kivy app to APK'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    default: '3.8'
+  work-dir:
+    default: '.'
+    description: 'Working directory'
+  buildozer-cmd:
+    default: 'buildozer android debug'
+    description: 'Buildozer command to use'
 
-on:
-  push:
-    branches: [ main, master ]
-  workflow_dispatch:
+# Add the branding section
+branding:
+  color: 'green'
+  icon: 'play'
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+runs:
+  using: "composite"
+  steps:
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        architecture: x64
+        python-version: ${{ inputs.python-version }}
 
-    steps:
-    - name: 1. Ambil Source Code dari Repo
-      uses: actions/checkout@v4
-
-    - name: 2. Setup Java JDK 17 (Wajib untuk Gradle)
+    - name: Setup Java 17 required by Gradle
       uses: actions/setup-java@v4
       with:
-        distribution: 'temurin'
+        distribution: 'temurin'  # or 'zulu','liberica', etc.
         java-version: '17'
 
-    - name: 3. Install Android SDK & Aidl Resmi (Metode Google Colab)
+    - name: Set JAVA_HOME
       run: |
-        sudo apt-get update
-        sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
-        sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
-        # Pasang aidl bawaan linux ubuntu
-        sudo apt-get install -y aidl
-        sudo pip3 install --upgrade buildozer cython virtualenv
-        
-        # Download cmdline-tools untuk menginstal SDK secara manual
-        mkdir -p $HOME/android-cmdline
-        curl -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -q cmdline.zip -d $HOME/android-cmdline
-        
-        # Jalankan sdkmanager untuk download build-tools 33.0.1 secara mandiri
-        yes | $HOME/android-cmdline/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
-        $HOME/android-cmdline/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "build-tools;33.0.1" "platforms;android-33"
-        
-        # Suntik file aidl asli ke dalam SDK yang baru didownload
-        ln -sf /usr/bin/aidl $HOME/android-sdk/build-tools/33.0.1/aidl
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+      shell: bash
 
-    - name: 4. Paksa Buildozer Memakai SDK yang Sudah Kita Siapkan
+    - name: Prepare virtual environment
       run: |
-        # Buat folder rahasia Buildozer dan arahkan (symlink) ke SDK resmi yang sudah lengkap ada aidl-nya
-        mkdir -p $HOME/.buildozer/android/platform/
-        ln -sf $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
-        
-        # Jalankan perakitan APK
-        buildozer android debug
+        python3 -m venv venv
+        source venv/bin/activate
+        echo "Using Python==$(python --version)"
+      shell: bash
+      
+    - name: Install and upgrade dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git \
+          zip \
+          unzip \
+          openjdk-17-jdk \
+          python3-pip \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev
+        export PATH=$PATH:~/.local/bin/
+        python3 -m pip install --upgrade \
+          Cython==0.29.33 \
+          buildozer
+      shell: bash
 
-    - name: 5. Upload APK ke Hasil Akhir (Artifacts)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Game-APK-Siap-Instal
-        path: bin/*.apk
+    - name: Install requirements in requirements.txt if it exists
+      run: |
+        if [ -f requirements.txt ]; then
+          python3 -m pip install -r requirements.txt
+        fi
+      shell: bash
+
+    - name: Build with Buildozer
+      run: |
+        ${{ inputs.buildozer-cmd }}
+      shell: bash
