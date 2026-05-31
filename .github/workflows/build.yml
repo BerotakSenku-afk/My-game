@@ -25,15 +25,15 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 4. Cache Buildozer & Gradle
+    - name: 4. Cache Buildozer
       uses: actions/cache@v4
       with:
         path: |
           ~/.buildozer
           ~/.gradle
-        key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+        key: buildozer-pygame-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
-          buildozer-${{ runner.os }}-
+          buildozer-pygame-${{ runner.os }}-
 
     - name: 5. Install Pendukung Utama
       run: |
@@ -41,12 +41,14 @@ jobs:
         sudo apt-get install -y \
           git zip unzip python3-pip \
           cmake libffi-dev libssl-dev \
-          libtool-bin autoconf automake pkg-config libltdl-dev \
-          g++-multilib lib32z1
+          libtool-bin autoconf automake \
+          pkg-config libltdl-dev \
+          g++-multilib lib32z1 \
+          libsdl2-dev libsdl2-image-dev \
+          libsdl2-mixer-dev libsdl2-ttf-dev
         pip install --upgrade \
           buildozer \
           "cython==0.29.36" \
-          "pygame==2.1.3" \
           virtualenv
 
     - name: 6. Install Android cmdline-tools
@@ -59,8 +61,10 @@ jobs:
           mv /tmp/cmdtools-tmp/cmdline-tools \
              $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
         fi
-        echo "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/.buildozer/android/platform/android-sdk/platform-tools" >> $GITHUB_PATH
+        echo "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" \
+             >> $GITHUB_PATH
+        echo "$HOME/.buildozer/android/platform/android-sdk/platform-tools" \
+             >> $GITHUB_PATH
 
     - name: 7. Accept Lisensi & Install SDK
       env:
@@ -92,7 +96,10 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
-        path: bin/*.apk
+        # Trik bintang ganda: mencari file .apk di folder mana pun tanpa terkecuali
+        path: "**/bin/*.apk"
+        # Jika tetap tidak ketemu, setidaknya prosesnya akan tertulis eror/gagal (bukan pura-pura sukses)
+        if-no-files-found: error
 
     - name: 9b. Upload Log jika Gagal
       if: failure()
