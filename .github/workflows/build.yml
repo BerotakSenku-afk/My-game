@@ -19,29 +19,35 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Install Pendukung Kompiler & File Aidl Resmi Ubuntu
+    - name: 3. Install Pendukung Kompiler & Aidl Resmi Ubuntu
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
-        # Mengunduh paket aidl bawaan Linux agar pasti ada di server
         sudo apt-get install -y aidl
         sudo pip3 install --upgrade buildozer cython virtualenv
 
-    - name: 4. Buat Folder Tujuan & Suntik Paksa Jalur Aidl
+    - name: 4. Pancing Buildozer untuk Download SDK & NDK
       run: |
-        # Membuat folder target build-tools Buildozer secara paksa sebelum dia mulai download
-        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
-        # Membuat jalan pintas (symlink) agar saat Buildozer mencari aidl, dia otomatis diarahkan ke file aidl bawaan Ubuntu
-        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
-        # Cek apakah jalan pintasnya berhasil terpasang
-        ls -la ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
+        # Perintah pancingan agar Buildozer mendownload sdkmanager & NDK secara normal tanpa eror folder kosong
+        buildozer android google_snyk || true
+        buildozer android platform || true
 
-    - name: 5. Mulai Kompilasi APK Game
+    - name: 5. Suntik Paksa Jalur Aidl ke Tempat yang Benar
+      run: |
+        # Setelah sdkmanager aman terinstal, baru kita buatkan folder target versi 33
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
+        # Pasang jalan pintas file aidl bawaan Ubuntu ke jantung folder Buildozer
+        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
+        # Salin juga ke folder build-tools utama sebagai cadangan keamanan
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/
+        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/aidl || true
+
+    - name: 6. Mulai Kompilasi Akhir APK Game
       run: |
         buildozer android debug
 
-    - name: 6. Upload APK ke Hasil Akhir (Artifacts)
+    - name: 7. Upload APK ke Hasil Akhir (Artifacts)
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
