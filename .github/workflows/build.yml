@@ -1,4 +1,4 @@
-name: Kapsul Buildozer APK
+name: Build APK Game
 
 on:
   push:
@@ -7,19 +7,35 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - name: 1. Ambil Source Code
       uses: actions/checkout@v4
 
-    - name: 2. Masukkan ke Mesin Kapsul Buildozer (Otomatis)
-      uses: ArtemSBulgakov/buildozer-action@v1
+    - name: 2. Setup Python 3.10
+      uses: actions/setup-python@v5
       with:
-        command: buildozer android debug
-        buildozer_version: master
+        python-version: '3.10'
 
-    - name: 3. Upload APK ke Artifacts
+    - name: 3. Setup Java 17 (Wajib untuk Gradle)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: 4. Install Dependencies Bawaan Pabrik
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip install --upgrade buildozer cython virtualenv
+
+    - name: 5. Build APK & Terima Lisensi Otomatis
+      run: |
+        # Perintah 'yes |' di depan akan otomatis mengetik 'y' pada setiap pertanyaan lisensi Google
+        yes | buildozer android debug
+
+    - name: 6. Upload APK ke Hasil Akhir
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
