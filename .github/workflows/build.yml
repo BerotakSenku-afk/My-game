@@ -48,7 +48,7 @@ jobs:
           libsdl2-mixer-dev libsdl2-ttf-dev
         pip install --upgrade \
           buildozer \
-          "cython==0.29.36" \
+          "cython>=3.0.0" \
           virtualenv
 
     - name: 6. Install Android cmdline-tools
