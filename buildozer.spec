@@ -42,7 +42,17 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,pygame
+# Ganti bagian ini
+requirements = python3,pygame,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pyjnius
+
+# Tambahkan bootstrap SDL2
+p4a.bootstrap = sdl2
+
+# Pastikan ini ada
+android.api = 33
+android.minapi = 21
+android.ndk = 25b
+android.accept_sdk_license = True
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
