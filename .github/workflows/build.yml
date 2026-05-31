@@ -1,4 +1,4 @@
-name: Build Android APK with Buildozer
+name: Build Android APK dengan Buildozer
 
 on:
   push:
@@ -10,50 +10,38 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout Konten Repositori
+    - name: 1. Ambil Source Code dari Repo
       uses: actions/checkout@v4
 
-    - name: Set Up Java JDK 17
+    - name: 2. Setup Java JDK 17 (Wajib untuk Gradle)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Paksa Instal Android Build-Tools & Kenalkan Aidl
-      run: |
-        # 1. Unduh paket build-tools versi 33 yang di dalamnya ada file aidl
-        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.1"
-        
-        # 2. Daftarkan folder aidl tersebut ke 'Jalur Jalan' (PATH) GitHub Actions
-        echo "$ANDROID_HOME/build-tools/33.0.1" >> $GITHUB_PATH
-
-
-    - name: Ambil Cache Buildozer
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.ccache
-          .buildozer
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
-
-    - name: Install Dependencies & Alat Kompiler
+    - name: 3. Install Pendukung Kompiler & File Aidl Resmi Ubuntu
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
+        # Mengunduh paket aidl bawaan Linux agar pasti ada di server
+        sudo apt-get install -y aidl
         sudo pip3 install --upgrade buildozer cython virtualenv
 
-    - name: Setujui Semua Lisensi Android SDK
+    - name: 4. Buat Folder Tujuan & Suntik Paksa Jalur Aidl
       run: |
-        yes | sdkmanager --licenses || true
+        # Membuat folder target build-tools Buildozer secara paksa sebelum dia mulai download
+        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
+        # Membuat jalan pintas (symlink) agar saat Buildozer mencari aidl, dia otomatis diarahkan ke file aidl bawaan Ubuntu
+        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
+        # Cek apakah jalan pintasnya berhasil terpasang
+        ls -la ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
 
-    - name: Proses Kompilasi APK (Buildozer Debug)
+    - name: 5. Mulai Kompilasi APK Game
       run: |
         buildozer android debug
 
-    - name: Upload Hasil File APK ke GitHub Artifacts
+    - name: 6. Upload APK ke Hasil Akhir (Artifacts)
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
