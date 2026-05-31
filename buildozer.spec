@@ -43,7 +43,7 @@ version = 0.1
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 # Ganti bagian ini
-requirements = python3,pygame,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pyjnius
+requirements = python3,kivy,pygame
 
 # Tambahkan bootstrap SDL2
 p4a.bootstrap = sdl2
