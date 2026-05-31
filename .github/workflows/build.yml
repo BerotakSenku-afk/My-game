@@ -90,14 +90,12 @@ jobs:
           $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager \
           $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
         
-        # TRICK PAMUNGKAS: Paksa virtualenv internal Buildozer pakai Cython yang bener
-        pip install --upgrade "cython<3.0.0"
+        # Pastikan Cython yang aman terpasang di lingkungan build
+        pip install --upgrade "cython<3.0.0" virtualenv
         
-        # Bersihkan sisa-sisa kompilasi rusak di dalam folder project
-        buildozer android clean
-        
-        # Jalankan build murni
+        # JALANKAN BUILD MURNI (Tanpa perintah clean yang merusak jalur)
         buildozer -v android debug
+
 
 
     - name: 9. Upload APK
