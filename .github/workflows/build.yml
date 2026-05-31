@@ -19,32 +19,34 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Install Pendukung Kompiler & Aidl Resmi Ubuntu
+    - name: 3. Install Android SDK & Aidl Resmi (Metode Google Colab)
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
+        # Pasang aidl bawaan linux ubuntu
         sudo apt-get install -y aidl
         sudo pip3 install --upgrade buildozer cython virtualenv
-
-    - name: 4. Jalankan Kompilasi & Suntik Aidl Otomatis di Latar Belakang
-      run: |
-        # Membuat skrip pemantau latar belakang agar mendeteksi kapan folder build-tools tercipta oleh Buildozer
-        (
-          echo "=== Pemantau Latar Belakang Aktif ==="
-          while [ ! -d "$HOME/.buildozer/android/platform/android-sdk/build-tools" ]; do
-            sleep 2
-          done
-          echo "=== Folder SDK Terdeteksi! Menunggu Pembuatan Folder Versi ==="
-          sleep 10
-          
-          # Membuat folder versi target dan menaruh link aidl secara paksa di tengah jalan
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
-          ln -sf /usr/bin/aidl $HOME/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
-          echo "=== File Aidl Berhasil Disuntikkan Secara Paksa! ==="
-        ) &
         
-        # Jalankan perintah perakitan APK utama
+        # Download cmdline-tools untuk menginstal SDK secara manual
+        mkdir -p $HOME/android-cmdline
+        curl -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q cmdline.zip -d $HOME/android-cmdline
+        
+        # Jalankan sdkmanager untuk download build-tools 33.0.1 secara mandiri
+        yes | $HOME/android-cmdline/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
+        $HOME/android-cmdline/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "build-tools;33.0.1" "platforms;android-33"
+        
+        # Suntik file aidl asli ke dalam SDK yang baru didownload
+        ln -sf /usr/bin/aidl $HOME/android-sdk/build-tools/33.0.1/aidl
+
+    - name: 4. Paksa Buildozer Memakai SDK yang Sudah Kita Siapkan
+      run: |
+        # Buat folder rahasia Buildozer dan arahkan (symlink) ke SDK resmi yang sudah lengkap ada aidl-nya
+        mkdir -p $HOME/.buildozer/android/platform/
+        ln -sf $HOME/android-sdk $HOME/.buildozer/android/platform/android-sdk
+        
+        # Jalankan perakitan APK
         buildozer android debug
 
     - name: 5. Upload APK ke Hasil Akhir (Artifacts)
