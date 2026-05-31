@@ -7,35 +7,32 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: 1. Ambil Source Code
       uses: actions/checkout@v4
 
-    - name: 2. Setup Python 3.10
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: 3. Setup Java 17 (Wajib untuk Gradle)
+    - name: 2. Setup Java 17 (Wajib untuk Gradle)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 4. Install Dependencies Bawaan Pabrik
+    - name: 3. Install Pendukung & Obat Kuat Arsitektur 32-bit (Anti Aidl Error)
       run: |
         sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        # Menginstal pustaka multilib agar file aidl bisa dieksekusi di server baru
+        sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
+        sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
+        sudo apt-get install -y aidl g++-multilib lib32z1
         pip install --upgrade buildozer cython virtualenv
 
-    - name: 5. Build APK & Terima Lisensi Otomatis
+    - name: 4. Build APK & Terima Lisensi Otomatis
       run: |
-        # Perintah 'yes |' di depan akan otomatis mengetik 'y' pada setiap pertanyaan lisensi Google
         yes | buildozer android debug
 
-    - name: 6. Upload APK ke Hasil Akhir
+    - name: 5. Upload APK ke Hasil Akhir
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
