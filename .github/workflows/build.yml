@@ -27,27 +27,27 @@ jobs:
         sudo apt-get install -y aidl
         sudo pip3 install --upgrade buildozer cython virtualenv
 
-    - name: 4. Pancing Buildozer untuk Download SDK & NDK
+    - name: 4. Jalankan Kompilasi & Suntik Aidl Otomatis di Latar Belakang
       run: |
-        # Perintah pancingan agar Buildozer mendownload sdkmanager & NDK secara normal tanpa eror folder kosong
-        buildozer android google_snyk || true
-        buildozer android platform || true
-
-    - name: 5. Suntik Paksa Jalur Aidl ke Tempat yang Benar
-      run: |
-        # Setelah sdkmanager aman terinstal, baru kita buatkan folder target versi 33
-        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
-        # Pasang jalan pintas file aidl bawaan Ubuntu ke jantung folder Buildozer
-        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
-        # Salin juga ke folder build-tools utama sebagai cadangan keamanan
-        mkdir -p ~/.buildozer/android/platform/android-sdk/build-tools/
-        ln -sf /usr/bin/aidl ~/.buildozer/android/platform/android-sdk/build-tools/aidl || true
-
-    - name: 6. Mulai Kompilasi Akhir APK Game
-      run: |
+        # Membuat skrip pemantau latar belakang agar mendeteksi kapan folder build-tools tercipta oleh Buildozer
+        (
+          echo "=== Pemantau Latar Belakang Aktif ==="
+          while [ ! -d "$HOME/.buildozer/android/platform/android-sdk/build-tools" ]; do
+            sleep 2
+          done
+          echo "=== Folder SDK Terdeteksi! Menunggu Pembuatan Folder Versi ==="
+          sleep 10
+          
+          # Membuat folder versi target dan menaruh link aidl secara paksa di tengah jalan
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/build-tools/33.0.1/
+          ln -sf /usr/bin/aidl $HOME/.buildozer/android/platform/android-sdk/build-tools/33.0.1/aidl
+          echo "=== File Aidl Berhasil Disuntikkan Secara Paksa! ==="
+        ) &
+        
+        # Jalankan perintah perakitan APK utama
         buildozer android debug
 
-    - name: 7. Upload APK ke Hasil Akhir (Artifacts)
+    - name: 5. Upload APK ke Hasil Akhir (Artifacts)
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
