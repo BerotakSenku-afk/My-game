@@ -19,17 +19,26 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Install Pendukung & Pustaka Arsitektur (Anti Aidl Error)
+    - name: 3. Install Pendukung Utama & Paksa Android SDK Manager
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
-        sudo apt-get install -y aidl g++-multilib lib32z1
+        sudo apt-get install -y aidl
         pip install --upgrade buildozer cython virtualenv
+        
+        # Mendownload alat resmi dari Google untuk menyetujui lisensi di awal
+        mkdir -p $HOME/cmdline-tools
+        curl -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q cmdline.zip -d $HOME/cmdline-tools
+        
+        # Trik Utama: Menandatangani semua lisensi Google Android (Termasuk versi 37) secara otomatis
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/
+        yes | $HOME/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
 
     - name: 4. Build APK Secara Bersih
       run: |
-        # Jalankan buildozer secara normal tanpa pancingan 'yes' agar tidak terkena broken pipe
+        # Sekarang Buildozer bebas jalan karena semua pintu lisensi sudah kita buka di awal
         buildozer android debug
 
     - name: 5. Upload APK ke Hasil Akhir
