@@ -8,19 +8,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 60  # ← Tambah timeout eksplisit
+    timeout-minutes: 60
 
     steps:
     - name: 1. Ambil Source Code
       uses: actions/checkout@v4
 
-    - name: 2. Setup Java 17
+    - name: 2. Setup Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: 3. Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Cache Buildozer & Gradle
+    - name: 4. Cache Buildozer & Gradle
       uses: actions/cache@v4
       with:
         path: |
@@ -30,7 +35,7 @@ jobs:
         restore-keys: |
           buildozer-${{ runner.os }}-
 
-    - name: 4. Install Pendukung Utama
+    - name: 5. Install Pendukung Utama
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -38,11 +43,14 @@ jobs:
           cmake libffi-dev libssl-dev \
           libtool-bin autoconf automake pkg-config libltdl-dev \
           g++-multilib lib32z1
-        pip install --upgrade buildozer cython virtualenv
+        pip install --upgrade \
+          buildozer \
+          "cython==0.29.36" \
+          "pygame==2.1.3" \
+          virtualenv
 
-    - name: 5. Install Android cmdline-tools
+    - name: 6. Install Android cmdline-tools
       run: |
-        # Skip kalau sudah ada di cache
         if [ ! -f "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
                -O cmdtools.zip
@@ -54,7 +62,7 @@ jobs:
         echo "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$HOME/.buildozer/android/platform/android-sdk/platform-tools" >> $GITHUB_PATH
 
-    - name: 6. Accept Lisensi & Install SDK
+    - name: 7. Accept Lisensi & Install SDK
       env:
         ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
       run: |
@@ -66,7 +74,7 @@ jobs:
           "build-tools;33.0.2" \
           "ndk;25.2.9519653"
 
-    - name: 7. Build APK
+    - name: 8. Build APK
       env:
         ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
         ANDROID_NDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk/ndk/25.2.9519653
@@ -80,12 +88,15 @@ jobs:
           $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
         buildozer -v android debug 2>&1 | tee build.log
 
-    - name: 8. Upload APK
+    - name: 9. Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
-        # Trik bintang ganda: mencari file .apk di folder mana pun tanpa terkecuali
-        path: "**/bin/*.apk"
-        # Jika tetap tidak ketemu, setidaknya prosesnya akan tertulis eror/gagal (bukan pura-pura sukses)
-        if-no-files-found: error
+        path: bin/*.apk
 
+    - name: 9b. Upload Log jika Gagal
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
