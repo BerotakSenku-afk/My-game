@@ -42,7 +42,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,pygame_boostrap
+requirements = python3,kivy,pygame
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -119,7 +119,7 @@ android.minapi = 21
 android.sdk = 33
 
 # (str) Android NDK version to use
-android.ndk = 25b
+android.ndk = 27b
 
 android.build_tools_version = 33.0.2
 
