@@ -83,4 +83,5 @@ jobs:
     - name: 8. Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: Game
+        name: Game-APK-Siap-Instal
+        path: bin/*.apk
