@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # ← Lebih stabil dari ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: 1. Ambil Source Code
@@ -27,23 +27,18 @@ jobs:
           python3-pip \
           cmake libffi-dev libssl-dev \
           libtool-bin autoconf automake pkg-config libltdl-dev \
-          g++-multilib lib32z1 \
-          adb
+          g++-multilib lib32z1
         pip install --upgrade buildozer cython virtualenv
 
     - name: 4. Install Android cmdline-tools (sdkmanager)
       run: |
-        # Download cmdline-tools resmi dari Google
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
              -O cmdtools.zip
-
-        # Ekstrak ke lokasi yang benar
         mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
         unzip -q cmdtools.zip -d /tmp/cmdtools-tmp
         mv /tmp/cmdtools-tmp/cmdline-tools \
            $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
 
-        # Tambahkan ke PATH
         echo "$HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin" \
              >> $GITHUB_PATH
         echo "$HOME/.buildozer/android/platform/android-sdk/platform-tools" \
@@ -54,24 +49,27 @@ jobs:
         ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
       run: |
         SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
-
-        # Accept semua lisensi otomatis
         yes | $SDKMANAGER --licenses
-
-        # Install komponen SDK yang dibutuhkan buildozer
         $SDKMANAGER \
           "platform-tools" \
           "platforms;android-33" \
           "build-tools;33.0.2" \
           "ndk;25.2.9519653"
 
-        echo "=== SDK & NDK Berhasil Diinstall ==="
-
     - name: 6. Build APK
       env:
         ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
         ANDROID_NDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk/ndk/25.2.9519653
       run: |
+        # Buat symlink sdkmanager ke path LAMA yang dicari buildozer
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+        ln -sf \
+          $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager \
+          $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
+        ln -sf \
+          $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/avdmanager \
+          $HOME/.buildozer/android/platform/android-sdk/tools/bin/avdmanager
+
         buildozer android debug
 
     - name: 7. Upload APK ke Hasil Akhir
