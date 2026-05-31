@@ -82,7 +82,6 @@ jobs:
       env:
         ANDROID_SDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk
         ANDROID_NDK_ROOT: /home/runner/.buildozer/android/platform/android-sdk/ndk/25.2.9519653
-        ANDROID_NDK_HOME: /home/runner/.buildozer/android/platform/android-sdk/ndk/25.2.9519653
         ANDROID_HOME: /home/runner/.buildozer/android/platform/android-sdk
       run: |
         unset ANDROID_NDK_HOME || true
@@ -90,7 +89,16 @@ jobs:
         ln -sf \
           $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager \
           $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
-        buildozer -v android debug 2>&1 | tee build.log
+        
+        # TRICK PAMUNGKAS: Paksa virtualenv internal Buildozer pakai Cython yang bener
+        pip install --upgrade "cython<3.0.0"
+        
+        # Bersihkan sisa-sisa kompilasi rusak di dalam folder project
+        buildozer android clean
+        
+        # Jalankan build murni
+        buildozer -v android debug
+
 
     - name: 9. Upload APK
       uses: actions/upload-artifact@v4
