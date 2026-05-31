@@ -19,31 +19,30 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Install Pendukung Utama (Anti Aidl Error)
+    - name: 3. Install Pendukung Utama & Suntik Tanda Tangan Lisensi
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
         sudo apt-get install -y git zip unzip python3-pip cmake libffi-dev libssl-dev
         sudo apt-get install -y aidl g++-multilib lib32z1
         pip install --upgrade buildozer cython virtualenv
-
-    - name: 4. Pancing SDK & Tembak Manual Semua Lisensi Google
-      run: |
-        # Langkah A: Pancing Buildozer membuat folder SDK resmi miliknya sendiri (Biar tidak sdkmanager not found)
-        buildozer android platform || true
         
-        # Langkah B: Cara Manual Accept License!
-        # Kita cari di mana letak sdkmanager buatan Buildozer, lalu kita paksa ketik 'yes' untuk semua lisensinya
-        echo "=== Menyetujui Lisensi Google Secara Manual ==="
-        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
-        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        # MEMBUAT SURAT TANDA TANGAN LISENSI DIGITAL (PRE-ACCEPT)
+        # Kita buat foldernya duluan secara paksa
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+        
+        # Kita suntik kode enkripsi lisensi resmi Google (termasuk versi 37) langsung ke dalam file teks
+        echo -e "247c7ccb60f8da5643a2b1ddb477d490084c3059\n28a9478d6c522d87ac77416e4179e354737d2f9d" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+        echo -e "84831b9409646a918e30573bab4c9c91346d8abd" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+        
+        echo "=== Tanda Tangan Lisensi Google Berhasil Disuntikkan! ==="
 
-    - name: 5. Mulai Kompilasi Akhir APK Game
+    - name: 4. Build APK Murni (Bebas Pertanyaan y/N)
       run: |
-        # Sekarang lisensi sudah ditandatangani manual di Langkah 4, tinggal jalankan sampai jadi APK
+        # Jalankan buildozer secara murni tanpa embel-embel 'yes |' karena lisensinya sudah sah di dalam folder
         buildozer android debug
 
-    - name: 6. Upload APK ke Hasil Akhir
+    - name: 5. Upload APK ke Hasil Akhir
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
