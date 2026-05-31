@@ -84,4 +84,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Game-APK-Siap-Instal
-        path: bin/*.apk
+        # Trik bintang ganda: mencari file .apk di folder mana pun tanpa terkecuali
+        path: "**/bin/*.apk"
+        # Jika tetap tidak ketemu, setidaknya prosesnya akan tertulis eror/gagal (bukan pura-pura sukses)
+        if-no-files-found: error
+
