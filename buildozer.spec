@@ -119,7 +119,7 @@ android.minapi = 21
 android.sdk = 33
 
 # (str) Android NDK version to use
-android.ndk = 27b
+android.ndk = 25b
 
 android.build_tools_version = 33.0.2
 
