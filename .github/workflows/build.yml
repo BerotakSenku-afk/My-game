@@ -19,7 +19,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: 3. Install Pendukung Utama & Paksa Android SDK Manager
+    - name: 3. Install Pendukung Utama & Auto Accept SDK Licenses
       run: |
         sudo apt-get update
         sudo apt-get install -y libtool-bin ccache autoconf automake pkg-config libltdl-dev
@@ -27,18 +27,19 @@ jobs:
         sudo apt-get install -y aidl
         pip install --upgrade buildozer cython virtualenv
         
-        # Mendownload alat resmi dari Google untuk menyetujui lisensi di awal
-        mkdir -p $HOME/cmdline-tools
-        curl -o cmdline.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip -q cmdline.zip -d $HOME/cmdline-tools
+        # Trik Kunci: Mengisi persetujuan lisensi Android secara otomatis ke dalam sistem GitHub 
+        # Sebelum Buildozer sempat mendownloadnya, jadi lisensi versi 37 otomatis dianggap sah.
+        mkdir -p $HOME/.android
+        touch $HOME/.android/repositories.cfg
         
-        # Trik Utama: Menandatangani semua lisensi Google Android (Termasuk versi 37) secara otomatis
-        mkdir -p $HOME/.buildozer/android/platform/android-sdk/
-        yes | $HOME/cmdline-tools/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses
-
-    - name: 4. Build APK Secara Bersih
+    - name: 4. Build APK dengan Kunci Otomatis Lisensi
+      env:
+        # Memaksa Buildozer menerima semua lisensi SDK di latar belakang tanpa bertanya (y/N)
+        ANDROID_NOT_UNATTENDED: 1
+        AUTO_ACCEPT_AND_SDK_LICENSES: 1
       run: |
-        # Sekarang Buildozer bebas jalan karena semua pintu lisensi sudah kita buka di awal
+        # Kita jalankan buildozer secara murni. Biarkan dia mendownload sdkmanager-nya sendiri
+        # tanpa kita ganggu foldernya di awal, sehingga eror 'not installed' tidak akan muncul.
         buildozer android debug
 
     - name: 5. Upload APK ke Hasil Akhir
