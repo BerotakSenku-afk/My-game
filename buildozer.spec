@@ -49,10 +49,10 @@ requirements = python3,kivy
 # requirements.source.kivy = ../../kivy
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
+presplash.filename = %(source.dir)s/data/ikon.png
 
 # (str) Icon of the application
-#icon.filename = %(source.dir)s/data/icon.png
+icon.filename = %(source.dir)s/data/ikon.png
 
 # (list) Supported orientations
 # Valid options are: landscape, portrait, portrait-reverse, landscape-reverse, or all
@@ -113,13 +113,15 @@ android.permissions = android.permission.INTERNET, android.permission.VIBRATE, (
 android.api = 33
 
 # (int) Minimum API your APK / AAB will support.
-android.minapi = 24
+android.minapi = 21
 
 # (int) Android SDK version to use
-android.sdk = 20
+android.sdk = 33
 
 # (str) Android NDK version to use
-android.ndk = 23b
+android.ndk = 25b
+
+android.build_tools_version = 33.0.1
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 android.ndk_api = 21
