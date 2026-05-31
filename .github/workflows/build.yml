@@ -90,11 +90,15 @@ jobs:
           $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager \
           $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
         
-        # Pastikan Cython yang aman terpasang di lingkungan build
+        # Pastikan Cython aman
         pip install --upgrade "cython<3.0.0" virtualenv
         
-        # JALANKAN BUILD MURNI (Tanpa perintah clean yang merusak jalur)
+        # MANTRA PENJINAK: Kunci sistem agar tidak merakit Python 3.14 yang berat
+        export P4A_RELEASE_VERSION=v2024.01.21
+        
+        # Jalankan build
         buildozer -v android debug
+
 
 
 
