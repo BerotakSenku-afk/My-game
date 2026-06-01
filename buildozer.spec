@@ -43,7 +43,7 @@ version = 0.1
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 # Ganti bagian ini
-requirements = python3,kivy,pygame
+requirements = python3, pygame==2.5.2, setuptools, cython==0.29.33
 
 # Tambahkan bootstrap SDL2
 p4a.bootstrap = sdl2
@@ -108,7 +108,7 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions.html for all the supported syntaxes and 
-android.permissions = android.permission.INTERNET, android.permission.VIBRATE, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
+android.permissions = android.premission.READ_EXTERNAL_STORAGE android.permission.INTERNET, android.permission.VIBRATE, (name=android.permission.WRITE_EXTERNAL_STORAGE;maxSdkVersion=18)
 
 
 # (list) features (adds uses-feature -tags to manifest)
