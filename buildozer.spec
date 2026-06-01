@@ -43,7 +43,7 @@ version = 0.1
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
 # Ganti bagian ini
-requirements = python3, pygame==2.5.2, setuptools, cython==0.29.33
+requirements = python3,pygame==2.1.3,sdl2,sdl2_image,sdl2_mixer,sdl2_ttf,pyjnius
 
 # Tambahkan bootstrap SDL2
 p4a.bootstrap = sdl2
